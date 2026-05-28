@@ -1,16 +1,19 @@
 from dataclasses import dataclass
 
+from app.location import Location
+
 
 @dataclass
 class Car:
-
-    _brand: str
-    _fuel_consumption_100_km: float
+    brand: str
+    fuel_consumption: float | int
 
     def get_fuel_cost(
             self,
-            distance_in_km: float,
-            fuel_price: float
-    ) -> float:
-        consumed_fuel = (self._fuel_consumption_100_km * distance_in_km) / 100
+            start: Location,
+            destination: Location,
+            fuel_price: float | int
+    ) -> float | int:
+        distance = start.distance_to(destination)
+        consumed_fuel = (self.fuel_consumption * distance) / 100
         return consumed_fuel * fuel_price

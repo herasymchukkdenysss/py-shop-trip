@@ -4,13 +4,16 @@ from app.location import Location
 from app.car import Car
 
 
+class NotEnoughMoneyError(Exception):
+    pass
+
+
 @dataclass
 class Customer:
-
     _name: str
     _product_cart: dict
     _location: Location
-    _money: float
+    _money: float | int
     _car: Car
 
     @property
@@ -18,7 +21,7 @@ class Customer:
         return self._name
 
     @property
-    def balance(self) -> float:
+    def balance(self) -> float | int:
         return self._money
 
     @property
@@ -29,16 +32,20 @@ class Customer:
     def product_cart(self) -> dict:
         return self._product_cart
 
-    def get_fuel_cost(self, location: Location, fuel_price: float) -> float:
-        distance = self._location.get_distance_to_location(location)
-        fuel_cost = self._car.get_fuel_cost(distance, fuel_price)
-        return fuel_cost
+    @property
+    def car(self) -> Car:
+        return self._car
 
-    def pay(self, amount: float) -> bool:
-        if amount <= self._money:
-            self._money -= amount
-            return True
-        return False
+    def pay(self, amount: float | int) -> None:
+        if amount > self._money:
+            raise NotEnoughMoneyError(
+                f"Cannot pay {amount} $. {self.name} has only {self.balance}"
+            )
+        self._money -= amount
 
-    def refuel(self, location: Location, fuel_price: float) -> None:
-        self.pay(self.get_fuel_cost(location, fuel_price))
+    def drive_to(self, destination: Location) -> None:
+        self._location = destination
+
+    def refuel(self, destination: Location, fuel_price: float | int) -> None:
+        amount = self.car.get_fuel_cost(self.location, destination, fuel_price)
+        self.pay(amount)
